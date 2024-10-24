@@ -41,7 +41,13 @@ android {
     }
     packaging {
         resources {
-            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+            it.excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+
+    android {
+        buildFeatures {
+            buildConfig = true
         }
     }
 }
@@ -56,6 +62,9 @@ dependencies {
     implementation libs.androidx.ui.graphics
     implementation libs.androidx.ui.tooling.preview
     implementation libs.androidx.material3
+    implementation libs.androidx.lifecycle.process
+
+    //test
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
@@ -63,4 +72,25 @@ dependencies {
     androidTestImplementation libs.androidx.ui.test.junit4
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest
+
+    //Koin
+    // Koin Core features
+    implementation libs.koin.core
+    implementation libs.koin.androidx.compose
+    // Koin main features for Android
+    implementation libs.koin.android
+
+    //Ktor Client
+    ext.ktor_version = '1.6.2'
+    implementation libs.ktor.client.android
+    implementation "io.ktor:ktor-client-core:$ktor_version"
+    implementation "io.ktor:ktor-client-serialization:$ktor_version"
+    implementation "io.ktor:ktor-client-logging:$ktor_version"
+    implementation libs.ktor.client.gson
+    implementation libs.ktor.client.okhttp
+    implementation libs.logging.interceptor
+    implementation libs.kotlinx.serialization.json
+
+    //logging
+    implementation libs.timber
 }
