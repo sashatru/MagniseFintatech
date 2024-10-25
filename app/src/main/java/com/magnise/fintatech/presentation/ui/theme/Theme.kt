@@ -1,4 +1,4 @@
-package com.magnise.fintatech.ui.theme
+package com.magnise.fintatech.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

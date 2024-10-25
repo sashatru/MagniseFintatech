@@ -1,12 +1,17 @@
-package com.magnise.fintatech.data.remote
+package com.magnise.fintatech.data.remote.api
 
 import androidx.security.crypto.EncryptedSharedPreferences
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Parameters
 import timber.log.Timber
 
 class AuthenticationManager(
@@ -23,13 +28,20 @@ class AuthenticationManager(
     // Function to get the access token using username and password
     suspend fun getToken(username: String, password: String): Boolean {
         try {
-            val response: HttpResponse =
-                client.post("$BASE_URL/identity/realms/fintatech/protocol/openid-connect/token") {
-                    parameter("grant_type", "password")
-                    parameter("client_id", "app-cli")
-                    parameter("username", username)
-                    parameter("password", password)
+            val response: HttpResponse = client.submitForm(
+                url = "$BASE_URL/identity/realms/fintatech/protocol/openid-connect/token",
+                formParameters = Parameters.build {
+                    append("grant_type", "password")
+                    append("client_id", "app-cli")
+                    append("username", username)
+                    append("password", password)
                 }
+            ) {
+                // Set the Content-Type to application/x-www-form-urlencoded
+                headers {
+                    append(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                }
+            }
 
             if (response.status == HttpStatusCode.OK) {
                 val tokenResponse: TokenResponse = response.receive()
@@ -37,7 +49,7 @@ class AuthenticationManager(
                 return true
             }
         } catch (e: Exception) {
-            Timber.tag("AuthError").e("Failed to authenticate: %s", e.localizedMessage)
+            Timber.tag("Authentication").e("Failed to authenticate: %s", e.localizedMessage)
         }
         return false
     }
@@ -78,13 +90,14 @@ class AuthenticationManager(
                 return true
             }
         } catch (e: Exception) {
-            Timber.tag("AuthError").e("Failed to refresh token: %s", e.localizedMessage)
+            Timber.tag("Authentication").e("Failed to refresh token: %s", e.localizedMessage)
         }
         return false
     }
 }
 
 // Data class to parse the token response
+@Suppress("PropertyName")
 data class TokenResponse(
     val access_token: String,
     val refresh_token: String
