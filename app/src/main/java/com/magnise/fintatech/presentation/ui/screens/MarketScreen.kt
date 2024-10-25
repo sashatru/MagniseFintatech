@@ -1,4 +1,6 @@
 package com.magnise.fintatech.presentation.ui.screens
 
-class MarketScreen {
+import com.magnise.fintatech.data.models.Instrument
+
+class MarketScreen (instruments: List<Instrument>){
 }

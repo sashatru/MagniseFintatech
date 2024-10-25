@@ -78,7 +78,7 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
 
                 is AuthState.Authenticated -> {
                     Timber.tag("Authentication").d("MSC AuthState.Authenticated")
-                    AppNavHost(navController)
+                    AppNavHost(navController, instruments)
                 }
 
                 else -> {
