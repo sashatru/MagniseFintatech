@@ -12,6 +12,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import kotlinx.serialization.Serializable
 import timber.log.Timber
 
 class AuthenticationManager(
@@ -98,6 +99,7 @@ class AuthenticationManager(
 
 // Data class to parse the token response
 @Suppress("PropertyName")
+@Serializable
 data class TokenResponse(
     val access_token: String,
     val refresh_token: String
