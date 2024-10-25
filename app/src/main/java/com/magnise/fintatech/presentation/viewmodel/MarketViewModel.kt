@@ -13,11 +13,12 @@ open class MarketViewModel(
     //private val refreshTokenUseCase: RefreshTokenUseCase
 ) : ViewModel() {
 
-    private val _authState = MutableStateFlow<AuthState>(AuthState.Error("Not authenticated"))
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     open val authState: StateFlow<AuthState> = _authState
 
     fun authenticateUser(username: String, password: String) {
         viewModelScope.launch {
+            _authState.value = AuthState.Loading
             val result = loginUseCase(username, password)
             if (result.isSuccess) {
                 _authState.value = AuthState.Authenticated

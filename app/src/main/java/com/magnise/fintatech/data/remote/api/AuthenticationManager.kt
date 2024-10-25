@@ -57,6 +57,7 @@ class AuthenticationManager(
 
     // Function to save access and refresh tokens securely
     private fun saveTokens(accessToken: String, refreshToken: String) {
+        Timber.tag("Authentication").d("saveTokens: accessToken: %s, refreshToken: %s", accessToken, refreshToken)
         with(sharedPreferences.edit()) {
             putString(TOKEN_KEY, accessToken)
             putString(REFRESH_TOKEN_KEY, refreshToken)
