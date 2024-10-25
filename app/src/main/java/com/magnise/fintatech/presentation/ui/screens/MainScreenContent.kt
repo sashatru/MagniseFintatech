@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.magnise.fintatech.R
+import com.magnise.fintatech.presentation.ui.navigation.AppNavHost
 import com.magnise.fintatech.presentation.viewmodel.MarketViewModel
 import com.magnise.fintatech.utils.AuthState
 import org.koin.androidx.compose.getViewModel
@@ -35,6 +36,7 @@ const val PASSWORD: String = "kisfiz-vUnvy9-sopnyv"
 fun MainScreenContent(modifier: Modifier = Modifier) {
     val viewModel: MarketViewModel = getViewModel()
     val authState by viewModel.authState.collectAsState()
+    val instruments by viewModel.instruments.collectAsState()
     val navController = rememberNavController()
 
     // Authentication and navigation logic
@@ -76,7 +78,7 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
 
                 is AuthState.Authenticated -> {
                     Timber.tag("Authentication").d("MSC AuthState.Authenticated")
-                    //AppNavHost(navController)
+                    AppNavHost(navController)
                 }
 
                 else -> {

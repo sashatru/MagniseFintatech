@@ -1,23 +1,25 @@
 package com.magnise.fintatech.data.remote.api
 
-import androidx.security.crypto.EncryptedSharedPreferences
+import com.magnise.fintatech.data.models.Instrument
+import com.magnise.fintatech.data.models.InstrumentsResponse
+import com.magnise.fintatech.data.models.TokenResponse
+import com.magnise.fintatech.data.repository.TokenRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
-import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
-import kotlinx.serialization.Serializable
 import timber.log.Timber
 
 class AuthenticationManager(
     private val client: HttpClient,
-    private val sharedPreferences: EncryptedSharedPreferences
+    private val tokenRepository: TokenRepository
 ) {
 
     companion object {
@@ -46,7 +48,7 @@ class AuthenticationManager(
 
             if (response.status == HttpStatusCode.OK) {
                 val tokenResponse: TokenResponse = response.receive()
-                saveTokens(tokenResponse.access_token, tokenResponse.refresh_token)
+                tokenRepository.saveTokens(tokenResponse.access_token, tokenResponse.refresh_token)
                 return true
             }
         } catch (e: Exception) {
@@ -55,27 +57,27 @@ class AuthenticationManager(
         return false
     }
 
-    // Function to save access and refresh tokens securely
-    private fun saveTokens(accessToken: String, refreshToken: String) {
-        Timber.tag("Authentication").d("saveTokens: accessToken: %s, refreshToken: %s", accessToken, refreshToken)
-        with(sharedPreferences.edit()) {
-            putString(TOKEN_KEY, accessToken)
-            putString(REFRESH_TOKEN_KEY, refreshToken)
-            apply()
+    suspend fun fetchInstruments(): Result<List<Instrument>> {
+        return try {
+            val accessToken = tokenRepository.getAccessToken()
+                ?: throw IllegalStateException("Access token not found. Please authenticate first.")
+
+            val instrumentsResponse: InstrumentsResponse = client.get("$BASE_URL/api/instruments/v1/instruments") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $accessToken")
+                }
+                parameter("provider", "oanda")
+                parameter("kind", "forex")
+            }
+
+            Result.success(instrumentsResponse.data)
+        } catch (e: Exception) {
+            Timber.tag("Authentication").e("Failed to fetchInstruments: %s", e.localizedMessage)
+            Result.failure(e)
         }
     }
 
-    // Function to retrieve the stored access token
-    fun getAccessToken(): String? {
-        return sharedPreferences.getString(TOKEN_KEY, null)
-    }
-
-    // Function to retrieve the stored refresh token
-    fun getRefreshToken(): String? {
-        return sharedPreferences.getString(REFRESH_TOKEN_KEY, null)
-    }
-
-    // Function to refresh the access token using the refresh token
+/*    // Function to refresh the access token using the refresh token
     suspend fun refreshToken(): Boolean {
         val refreshToken = getRefreshToken() ?: return false
         try {
@@ -95,13 +97,6 @@ class AuthenticationManager(
             Timber.tag("Authentication").e("Failed to refresh token: %s", e.localizedMessage)
         }
         return false
-    }
+    }*/
 }
 
-// Data class to parse the token response
-@Suppress("PropertyName")
-@Serializable
-data class TokenResponse(
-    val access_token: String,
-    val refresh_token: String
-)
