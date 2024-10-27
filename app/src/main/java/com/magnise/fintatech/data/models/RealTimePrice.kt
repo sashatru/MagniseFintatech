@@ -6,7 +6,10 @@ data class RealTimePrice(
     val last: PriceData?,
     val change: Double?,
     val changePct: Double?
-)
+){
+    val lastPriceData: PriceData?
+        get() = last
+}
 
 data class PriceData(
     val timestamp: String,

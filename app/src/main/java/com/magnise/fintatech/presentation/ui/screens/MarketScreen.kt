@@ -4,12 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,22 +22,22 @@ import com.magnise.fintatech.data.models.Instrument
 import com.magnise.fintatech.data.models.Mappings
 import com.magnise.fintatech.data.models.PriceData
 import com.magnise.fintatech.data.models.Profile
-import com.magnise.fintatech.data.models.RealTimePrice
 import com.magnise.fintatech.presentation.ui.theme.MagniseTheme
 
 @Composable
 fun MarketScreen(
     instruments: List<Instrument>,
     onSubscribeClick: (String) -> Unit,
-    marketData: RealTimePrice,
+    lastPriceData: PriceData?,
     historicalPrices: List<HistoricalPrice>
 ) {
     var selectedInstrumentId by rememberSaveable { mutableStateOf(instruments.first().id) }
+    var selectedInstrumentSymbol by rememberSaveable { mutableStateOf(instruments.first().symbol) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(8.dp)
     ) {
         // Row layout for InstrumentSpinner and SubscribeButton
         Row(
@@ -47,17 +45,22 @@ fun MarketScreen(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp) // Add space between components
         ) {
-            Box (modifier = Modifier.fillMaxWidth().weight(2.0f)){
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .weight(2.0f)) {
                 InstrumentSpinner(
                     instruments = instruments,
-                    onInstrumentSelected = { instrumentId ->
-                        selectedInstrumentId = instrumentId
+                    onInstrumentSelected = { instrument ->
+                        selectedInstrumentId = instrument.id
+                        selectedInstrumentSymbol = instrument.symbol
                     },
                     modifier = Modifier
                         .height(56.dp) // Set a consistent height for alignment
                 )
             }
-            Box (modifier = Modifier.fillMaxWidth().weight(1.0f)){
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .weight(1.0f)) {
                 SubscribeButton(
                     instrumentId = selectedInstrumentId,
                     onSubscribeClick = {
@@ -67,10 +70,15 @@ fun MarketScreen(
                         .height(56.dp) // Match the height of the spinner
                 )
             }
-/*
-           */
-
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Market Data Display
+        MarketDataDisplay(
+            symbol = selectedInstrumentSymbol,
+            lastPriceData = lastPriceData
+        )
     }
 }
 
@@ -100,24 +108,10 @@ val mockInstruments = listOf(
     )
 )
 
-val mockMarketData = RealTimePrice(
-    ask = PriceData(
-        timestamp = "2024-08-07T09:45:00Z",
-        price = 48130.0,
-        volume = 100
-    ),
-    bid = PriceData(
-        timestamp = "2024-08-07T09:45:00Z",
-        price = 48120.0,
-        volume = 120
-    ),
-    last = PriceData(
-        timestamp = "2024-08-07T09:45:00Z",
-        price = 48126.333,
-        volume = 110
-    ),
-    change = 100.5,
-    changePct = 0.21
+val mockMarketData = PriceData(
+    timestamp = "2024-08-07T09:45:00Z",
+    price = 48126.333,
+    volume = 100
 )
 
 // Updated mock data for HistoricalPrice
@@ -163,7 +157,7 @@ fun PreviewMarketScreen() {
         MarketScreen(
             instruments = mockInstruments,
             onSubscribeClick = {},
-            marketData = mockMarketData,
+            lastPriceData = mockMarketData,
             historicalPrices = mockHistoricalPrices
         )
     }

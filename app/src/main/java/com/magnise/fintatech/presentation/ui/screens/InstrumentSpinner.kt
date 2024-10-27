@@ -29,7 +29,7 @@ import com.magnise.fintatech.utils.InstrumentSaver
 @Composable
 fun InstrumentSpinner(
     instruments: List<Instrument>,
-    onInstrumentSelected: (String) -> Unit,
+    onInstrumentSelected: (Instrument) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -62,7 +62,7 @@ fun InstrumentSpinner(
                     text = { Text(instrument.symbol) },
                     onClick = {
                         selectedInstrument = instrument
-                        onInstrumentSelected(instrument.id)
+                        onInstrumentSelected(instrument)
                         expanded = false
                     }
                 )
