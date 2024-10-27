@@ -3,7 +3,9 @@ package com.magnise.fintatech.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.magnise.fintatech.data.models.Instrument
+import com.magnise.fintatech.data.models.PriceData
 import com.magnise.fintatech.domain.usecase.GetInstrumentsUseCase
+import com.magnise.fintatech.domain.usecase.GetRealDataUseCase
 import com.magnise.fintatech.domain.usecase.LoginUseCase
 import com.magnise.fintatech.utils.AuthState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +15,8 @@ import timber.log.Timber
 
 open class MarketViewModel(
     private val loginUseCase: LoginUseCase,
-    private val getInstrumentsUseCase: GetInstrumentsUseCase
+    private val getInstrumentsUseCase: GetInstrumentsUseCase,
+    private val getRealDataUseCase: GetRealDataUseCase
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -21,6 +24,8 @@ open class MarketViewModel(
 
     private val _instruments = MutableStateFlow<List<Instrument>>(emptyList())
     val instruments: StateFlow<List<Instrument>> = _instruments
+
+    val realTimePrice: StateFlow<PriceData?> = getRealDataUseCase.realTimePrice
 
     fun authenticateUser(username: String, password: String) {
         viewModelScope.launch {
@@ -37,12 +42,29 @@ open class MarketViewModel(
 
     private suspend fun fetchInstruments() {
         val instrumentsResult = getInstrumentsUseCase.execute()
-        Timber.tag("Authentication").i("MVM instrumentsResult.isSuccess: %s", instrumentsResult.isSuccess)
+        Timber.tag("Authentication")
+            .i("MVM instrumentsResult.isSuccess: %s", instrumentsResult.isSuccess)
         if (instrumentsResult.isSuccess) {
             _instruments.value = instrumentsResult.getOrThrow()
             _authState.value = AuthState.Authenticated
+            startFetchData()
         } else {
             _authState.value = AuthState.Error("Failed to fetch instruments")
+        }
+    }
+
+    private suspend fun startFetchData() {
+        viewModelScope.launch { getRealDataUseCase.connect() }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopFetchData()
+    }
+
+    private fun stopFetchData() {
+        viewModelScope.launch {
+            getRealDataUseCase.disconnect()
         }
     }
 
