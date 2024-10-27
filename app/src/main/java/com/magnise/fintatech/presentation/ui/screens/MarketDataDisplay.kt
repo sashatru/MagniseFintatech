@@ -23,7 +23,7 @@ import java.util.Locale
 
 @Composable
 fun MarketDataDisplay(
-    symbol: String,
+    symbol: String = "no data",
     lastPriceData: PriceData?
 ) {
     OutlinedCard(
@@ -45,21 +45,26 @@ fun MarketDataDisplay(
 
                 lastPriceData?.let { priceData ->
                     val formattedPrice = formatPrice(priceData.price)
-                    Text(
-                        text = "Price:\n$formattedPrice",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
                     val formattedTime = formatTimestamp(priceData.timestamp)
-                    Text(
-                        text = "Time:\n$formattedTime",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                    LastData(price = formattedPrice, time = formattedTime)
+                }?: LastData(price = "no data", time = "no data")
             }
         }
     }
 }
+
+@Composable
+fun LastData (price: String, time: String){
+    Text(
+        text = "Price:\n$price",
+        style = MaterialTheme.typography.bodyMedium
+    )
+    Text(
+        text = "Time:\n$time",
+        style = MaterialTheme.typography.bodyMedium
+    )
+}
+
 
 // Helper function to format the timestamp as per the example (e.g., Aug 7, 9:45 AM)
 fun formatTimestamp(timestamp: String): String {
