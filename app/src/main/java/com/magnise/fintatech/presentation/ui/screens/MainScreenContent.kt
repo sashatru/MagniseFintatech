@@ -50,38 +50,43 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Display the logo at the top
-            Image(
-                painter = painterResource(id = R.drawable.logo_magnise),
-                contentDescription = "Magnise Logo",
-                modifier = Modifier.size(200.dp),
-                contentScale = ContentScale.Fit
-            )
 
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // Navigate to the MarketScreen if authentication is successful
-            when (authState) {
-                is AuthState.Loading -> {
-                    // Show loading indicator while authentication is in progress
-                    Box(
-                        modifier = modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Navigate to the MarketScreen if authentication is successful
+        when (authState) {
+            is AuthState.Loading -> {
+                // Show loading indicator while authentication is in progress
+                Box(
+                    modifier = modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                )
+
+                {
+                    // Display the logo at the top
+                    Logo()
+                    CircularProgressIndicator()
                 }
+            }
 
-                is AuthState.Authenticated -> {
-                    Timber.tag("Authentication").d("MSC AuthState.Authenticated")
-                    AppNavHost(navController, instruments)
-                }
+            is AuthState.Authenticated -> {
+                Timber.tag("Authentication").d("MSC AuthState.Authenticated")
+                AppNavHost(navController, instruments)
+            }
 
-                else -> {
+            else -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Display the logo at the top
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_magnise),
+                        contentDescription = "Magnise Logo",
+                        modifier = Modifier.size(200.dp),
+                        contentScale = ContentScale.Fit
+                    )
                     // Show error message if authentication fails
                     Text(
                         text = (authState as AuthState.Error).message,
@@ -92,6 +97,15 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
             }
         }
     }
+}
+@Composable
+fun Logo(){
+    Image(
+        painter = painterResource(id = R.drawable.logo_magnise),
+        contentDescription = "Magnise Logo",
+        modifier = Modifier.size(200.dp),
+        contentScale = ContentScale.Fit
+    )
 }
 
 /*

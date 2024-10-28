@@ -29,6 +29,9 @@ open class MarketViewModel(
     val realTimePrice: StateFlow<PriceData?> = getRealDataUseCase.realTimePrice
 
     fun authenticateUser(username: String, password: String) {
+        Timber.tag("Authentication")
+            .i("MVM authenticateUser")
+
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             val result = loginUseCase(username, password)
@@ -48,7 +51,6 @@ open class MarketViewModel(
         if (instrumentsResult.isSuccess) {
             _instruments.value = instrumentsResult.getOrThrow()
             _authState.value = AuthState.Authenticated
-            //startFetchData("ad9e5345-4c3b-41fc-9437-1d253f62db52")
         } else {
             _authState.value = AuthState.Error("Failed to fetch instruments")
         }
