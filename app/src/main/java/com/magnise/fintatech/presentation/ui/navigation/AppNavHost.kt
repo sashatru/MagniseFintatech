@@ -15,7 +15,7 @@ fun AppNavHost(
     NavHost(navController = navController, startDestination = "market") {
         // Define the Market screen
         composable("market") {
-            //MarketScreen(instruments = instruments)
+            MarketScreen(instruments = instruments)
         }
     }
 }

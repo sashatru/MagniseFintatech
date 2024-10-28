@@ -13,7 +13,6 @@ import com.magnise.fintatech.presentation.ui.theme.MagniseTheme
 
 @Composable
 fun SubscribeButton(
-    instrumentId: String,
     onSubscribeClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -30,7 +29,6 @@ fun SubscribeButton(
 fun PreviewSubscribeButton() {
     MagniseTheme {
         SubscribeButton(
-            instrumentId = "BTC/USD",
             onSubscribeClick = {},
             modifier = Modifier.padding(16.dp)
         )

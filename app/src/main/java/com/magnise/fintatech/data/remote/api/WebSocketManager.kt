@@ -3,9 +3,14 @@ package com.magnise.fintatech.data.remote.api
 import com.magnise.fintatech.data.models.PriceData
 import com.magnise.fintatech.data.models.WebSocketMessage
 import com.magnise.fintatech.data.repository.TokenRepository
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -25,9 +30,12 @@ class WebSocketManager(
     private val _realTimePrice = MutableStateFlow<PriceData?>(null)
     val realTimePrice = _realTimePrice.asStateFlow()
 
+    private lateinit var selectedInstrumentId: String
+
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun connect() {
+    suspend fun connect(selectedInstrumentId: String) {
+        this.selectedInstrumentId = selectedInstrumentId
         reconnectJob?.cancel()
         reconnectJob = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
@@ -54,7 +62,7 @@ class WebSocketManager(
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
-            Timber.tag("WebSocket").i("Message received: $text")
+            //Timber.tag("WebSocket").i("Message received: $text")
             handleIncomingMessage(text)
         }
 
@@ -80,7 +88,7 @@ class WebSocketManager(
 
     private suspend fun reconnect() {
         delay(5000) // Reconnection delay
-        connect()
+        connect(selectedInstrumentId)
     }
 
     private fun sendSubscriptionMessage() {
@@ -88,24 +96,28 @@ class WebSocketManager(
             {
                 "type": "l1-subscription",
                 "id": "1",
-                "instrumentId": "ad9e5345-4c3b-41fc-9437-1d253f62db52",
+                "instrumentId": "$selectedInstrumentId",
                 "provider": "simulation",
                 "subscribe": true,
                 "kinds": ["ask", "bid", "last"]
             }
         """.trimIndent()
+
+        Timber.tag("WebSocket").w("WebSocket subscriptionMessage: $subscriptionMessage")
+
         webSocket?.send(subscriptionMessage)
     }
 
     private fun handleIncomingMessage(responseText: String) {
-        Timber.tag("WebSocket").i("WSM handleIncomingMessage responseText: %s", responseText)
+        //Timber.tag("WebSocket").i("WSM handleIncomingMessage responseText: %s", responseText)
         try {
             val message = json.decodeFromString<WebSocketMessage>(responseText)
 
             // Process only messages with a `last` field
             if (message.type == "l1-update" || message.type == "l1-snapshot") {
                 message.last?.let { lastPriceData ->
-                    Timber.tag("WebSocket").d("WSM handleIncomingMessage update last data: %s", lastPriceData)
+                    Timber.tag("WebSocket")
+                        .d("WSM handleIncomingMessage update last data: %s", lastPriceData)
                     _realTimePrice.value = lastPriceData
                 }
             } else {
@@ -117,7 +129,8 @@ class WebSocketManager(
     }
 
 
-    suspend fun disconnect() {
+    fun disconnect() {
+        Timber.tag("WebSocket").i("Disconnect")
         reconnectJob?.cancel()
         webSocket?.close(1000, "Disconnecting")
     }

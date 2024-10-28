@@ -9,8 +9,8 @@ class GetRealDataUseCase(
 ) {
     val realTimePrice: StateFlow<PriceData?> = webSocketManager.realTimePrice
 
-    suspend fun connect() {
-        webSocketManager.connect()
+    suspend fun connect(selectedInstrumentId: String) {
+        webSocketManager.connect(selectedInstrumentId)
     }
 
     suspend fun disconnect() {
