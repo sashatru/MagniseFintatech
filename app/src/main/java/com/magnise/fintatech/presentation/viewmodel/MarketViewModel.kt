@@ -8,6 +8,7 @@ import com.magnise.fintatech.domain.usecase.GetInstrumentsUseCase
 import com.magnise.fintatech.domain.usecase.GetRealDataUseCase
 import com.magnise.fintatech.domain.usecase.LoginUseCase
 import com.magnise.fintatech.utils.AuthState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -54,8 +55,9 @@ open class MarketViewModel(
     }
 
     suspend fun startFetchData(selectedInstrumentId: String) {
-        stopFetchData()
-        viewModelScope.launch { getRealDataUseCase.connect(selectedInstrumentId) }
+        viewModelScope.launch {
+            getRealDataUseCase.connect(selectedInstrumentId)
+        }
     }
 
     override fun onCleared() {

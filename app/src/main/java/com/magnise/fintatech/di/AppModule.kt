@@ -32,7 +32,7 @@ val appModule = module {
     // Provide AuthenticationManager to handle tokens
     single { AuthenticationManager(get(), get()) }
     //Provide WebSocketManager
-    single { WebSocketManager(get()) }
+    factory { WebSocketManager(get()) }
 
     // Provide Use Cases
     factory { LoginUseCase(get()) }

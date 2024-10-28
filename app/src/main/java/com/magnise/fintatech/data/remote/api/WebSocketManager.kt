@@ -6,6 +6,7 @@ import com.magnise.fintatech.data.repository.TokenRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,11 +35,18 @@ class WebSocketManager(
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    private var shouldReconnect = true
+    private var isReconnecting = false
+
     suspend fun connect(selectedInstrumentId: String) {
         this.selectedInstrumentId = selectedInstrumentId
-        reconnectJob?.cancel()
+        // Disconnect any existing session
+        disconnect()
+        shouldReconnect = true // Enable reconnection for unexpected disconnects
+
         reconnectJob = CoroutineScope(Dispatchers.IO).launch {
-            while (isActive) {
+            while (isActive && shouldReconnect && !isReconnecting) {
+                isReconnecting = true
                 try {
                     val token = tokenRepository.getAccessToken()
                     val request = Request.Builder()
@@ -76,19 +84,23 @@ class WebSocketManager(
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: okhttp3.Response?) {
-            Timber.tag("WebSocket").e("WebSocket error: ${t.localizedMessage}")
-            CoroutineScope(Dispatchers.IO).launch { reconnect() }
+            Timber.tag("WebSocket").e("WebSocket error: ${t}")
+            if (shouldReconnect && !isReconnecting) reconnect()
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
             Timber.tag("WebSocket").i("WebSocket closed: $reason")
-            CoroutineScope(Dispatchers.IO).launch { reconnect() }
+            if (shouldReconnect) reconnect()
         }
     }
 
-    private suspend fun reconnect() {
-        delay(5000) // Reconnection delay
-        connect(selectedInstrumentId)
+    private fun reconnect() {
+        if (!isReconnecting) {
+            CoroutineScope(Dispatchers.IO).launch {
+                delay(5000) // Reconnection delay
+                connect(selectedInstrumentId)
+            }
+        }
     }
 
     private fun sendSubscriptionMessage() {
@@ -106,6 +118,7 @@ class WebSocketManager(
         Timber.tag("WebSocket").w("WebSocket subscriptionMessage: $subscriptionMessage")
 
         webSocket?.send(subscriptionMessage)
+        isReconnecting = false
     }
 
     private fun handleIncomingMessage(responseText: String) {
@@ -129,9 +142,11 @@ class WebSocketManager(
     }
 
 
-    fun disconnect() {
-        Timber.tag("WebSocket").i("Disconnect")
-        reconnectJob?.cancel()
+    suspend fun disconnect() {
+        Timber.tag("WebSocket").i("Disconnect WebSocket")
+        shouldReconnect = false // Disable reconnection for manual disconnects
+        reconnectJob?.cancelAndJoin()
         webSocket?.close(1000, "Disconnecting")
+        webSocket = null
     }
 }
