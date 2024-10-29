@@ -13,6 +13,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +38,13 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
 
     val authState by viewModel.authState.collectAsState()
     val instrumentsState = viewModel.instruments.collectAsState(initial = emptyList())
-    var instruments by rememberSaveable(stateSaver = InstrumentListSaver) { mutableStateOf(value = instrumentsState.value) }
+    var instruments by rememberSaveable(stateSaver = InstrumentListSaver) { mutableStateOf(emptyList()) }
+
+    LaunchedEffect(authState, instrumentsState.value) {
+        if (authState is AuthState.Authenticated && instrumentsState.value.isNotEmpty() && instruments.isEmpty()) {
+            instruments = instrumentsState.value
+        }
+    }
 
     Box(
         modifier = modifier
@@ -67,7 +74,11 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
 
             is AuthState.Authenticated -> {
                 Timber.tag("Instruments")
-                    .d("MSC AuthState.Authenticated, instruments %s\n%s", instruments, instrumentsState.value)
+                    .d(
+                        "MSC AuthState.Authenticated, instruments %s\n%s",
+                        instruments,
+                        instrumentsState.value
+                    )
 
                 if (instrumentsState.value.isNotEmpty() && instruments.isEmpty()) {
                     instruments = instrumentsState.value
@@ -112,16 +123,3 @@ fun Logo() {
     )
 }
 
-/*
-// Mock ViewModel for Preview
-class MockMarketViewModel : MarketViewModel() {
-    private val _authState = MutableStateFlow<AuthState>(AuthState.Error("Not authenticated"))
-    override val authState: StateFlow<AuthState> = _authState
-}
-
-// Preview with Mock ViewModel
-@Preview(showBackground = true)
-@Composable
-fun MainScreenContentPreview() {
-    MainScreenContent(viewModel = MockMarketViewModel())
-}*/
