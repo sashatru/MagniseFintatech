@@ -42,6 +42,8 @@ fun MarketScreen(
 
     val lastPriceData by marketViewModel.realTimePrice.collectAsState()
 
+    val historicalData by marketViewModel.historicalPriceData.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
