@@ -1,5 +1,7 @@
 package com.magnise.fintatech.data.remote.api
 
+import com.magnise.fintatech.data.models.HistoricalDataResponse
+import com.magnise.fintatech.data.models.HistoricalPriceData
 import com.magnise.fintatech.data.models.Instrument
 import com.magnise.fintatech.data.models.InstrumentsResponse
 import com.magnise.fintatech.data.models.TokenResponse
@@ -77,26 +79,34 @@ class AuthenticationManager(
         }
     }
 
-/*    // Function to refresh the access token using the refresh token
-    suspend fun refreshToken(): Boolean {
-        val refreshToken = getRefreshToken() ?: return false
-        try {
-            val response: HttpResponse =
-                client.post("$BASE_URL/identity/realms/fintatech/protocol/openid-connect/token") {
-                    parameter("grant_type", "refresh_token")
-                    parameter("client_id", "app-cli")
-                    parameter("refresh_token", refreshToken)
-                }
+    suspend fun getHistoricalData(instrumentId: String, interval: String = "1", periodicity: String = "minute", barsCount: Int = 10): Result<List<HistoricalPriceData>> {
+        return try {
+            val accessToken = tokenRepository.getAccessToken()
+                ?: throw IllegalStateException("Access token not found. Please authenticate first.")
 
-            if (response.status == HttpStatusCode.OK) {
-                val tokenResponse: TokenResponse = response.receive()
-                saveTokens(tokenResponse.access_token, tokenResponse.refresh_token)
-                return true
+            val response: HistoricalDataResponse = client.get("$BASE_URL/api/bars/v1/bars/count-back") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $accessToken")
+                }
+                parameter("instrumentId", instrumentId)
+                parameter("provider", "oanda")
+                parameter("interval", interval)
+                parameter("periodicity", periodicity)
+                parameter("barsCount", barsCount)
             }
+
+            val historicalData = response.data.map {
+                HistoricalPriceData(
+                    timestamp = it.t,
+                    closePrice = it.c
+                )
+            }
+
+            Result.success(historicalData)
         } catch (e: Exception) {
-            Timber.tag("Authentication").e("Failed to refresh token: %s", e.localizedMessage)
+            Timber.tag("Authentication").e("Failed to fetch historical data: %s", e.localizedMessage)
+            Result.failure(e)
         }
-        return false
-    }*/
+    }
 }
 

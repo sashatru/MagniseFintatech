@@ -1,4 +1,4 @@
-package com.magnise.fintatech.domain.usecase
+package com.magnise.fintatech.domain.usecases
 
 import com.magnise.fintatech.data.models.PriceData
 import com.magnise.fintatech.data.remote.api.WebSocketManager
