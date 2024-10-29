@@ -1,8 +1,8 @@
 package com.magnise.fintatech.domain.usecases
 
-import com.magnise.fintatech.data.remote.api.AuthenticationManager
+import com.magnise.fintatech.data.remote.api.ApiManager
 
-class LoginUseCase(private val authManager: AuthenticationManager) {
+class LoginUseCase(private val authManager: ApiManager) {
 
     suspend operator fun invoke(username: String, password: String): Result<Boolean> {
         return try {

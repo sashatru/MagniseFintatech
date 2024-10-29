@@ -1,6 +1,6 @@
 package com.magnise.fintatech.di
 
-import com.magnise.fintatech.data.remote.api.AuthenticationManager
+import com.magnise.fintatech.data.remote.api.ApiManager
 import com.magnise.fintatech.data.remote.api.WebSocketManager
 import com.magnise.fintatech.data.remote.providers.EncryptedSharedPreferencesProvider
 import com.magnise.fintatech.data.remote.providers.HttpClientProvider
@@ -30,7 +30,7 @@ val appModule = module {
     single { TokenRepository(get()) }
 
     // Provide AuthenticationManager to handle tokens
-    single { AuthenticationManager(get(), get()) }
+    single { ApiManager(get(), get()) }
     //Provide WebSocketManager
     factory { WebSocketManager(get()) }
 

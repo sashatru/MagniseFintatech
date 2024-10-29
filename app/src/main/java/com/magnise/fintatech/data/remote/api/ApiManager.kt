@@ -19,7 +19,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import timber.log.Timber
 
-class AuthenticationManager(
+class ApiManager(
     private val client: HttpClient,
     private val tokenRepository: TokenRepository
 ) {
