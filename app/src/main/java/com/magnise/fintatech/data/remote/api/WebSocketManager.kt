@@ -40,6 +40,7 @@ class WebSocketManager(
 
     suspend fun connect(selectedInstrumentId: String) {
         this.selectedInstrumentId = selectedInstrumentId
+        _realTimePrice.value = null
         // Disconnect any existing session
         disconnect()
         shouldReconnect = true // Enable reconnection for unexpected disconnects

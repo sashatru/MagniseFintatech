@@ -37,6 +37,7 @@ fun MarketScreen(
         rememberSaveable { mutableStateOf(marketViewModel.selectedInstrumentId) }
     val selectedInstrumentSymbol =
         rememberSaveable { mutableStateOf(marketViewModel.selectedInstrumentSymbol) }
+    val selectedInstrumentSymbolForData = rememberSaveable { mutableStateOf(selectedInstrumentSymbol.value) }
 
     val lastPriceData by marketViewModel.realTimePrice.collectAsState()
 
@@ -75,6 +76,9 @@ fun MarketScreen(
                 SubscribeButton(
                     onSubscribeClick = {
                         coroutineScope.launch {
+                            Timber.tag("MarketDataDisplay").w("MS onSubscribeClick selectedInstrumentSymbolForData: %s, selectedInstrumentSymbol.value: %s", selectedInstrumentSymbolForData, selectedInstrumentSymbol.value)
+                            selectedInstrumentSymbolForData.value = selectedInstrumentSymbol.value
+                            Timber.tag("MarketDataDisplay").w("MS onSubscribeClick #1 selectedInstrumentSymbolForData: %s, selectedInstrumentSymbol.value: %s", selectedInstrumentSymbolForData, selectedInstrumentSymbol.value)
                             selectedInstrumentId.value?.let { marketViewModel.startFetchData(it) }
                         }
                     },
@@ -87,7 +91,7 @@ fun MarketScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Market Data Display
-        selectedInstrumentSymbol.value?.let {
+        selectedInstrumentSymbolForData.value?.let {
             MarketDataDisplay(
                 symbol = it,
                 lastPriceData = lastPriceData
