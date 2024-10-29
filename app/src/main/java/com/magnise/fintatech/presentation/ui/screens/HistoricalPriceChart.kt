@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.magnise.fintatech.data.models.HistoricalPriceData
 import com.magnise.fintatech.presentation.ui.theme.MagniseTheme
+import timber.log.Timber
 
 /**
  * A composable function to render a line chart representing historical price data.
@@ -30,6 +31,8 @@ import com.magnise.fintatech.presentation.ui.theme.MagniseTheme
 fun HistoricalPriceChart(
     data: List<HistoricalPriceData>
 ) {
+    Timber.tag("GetHistory").w("HistoricalPriceChart OPEN fetched historical price data: $data")
+
     if (data.isEmpty()) return
     val chartColor = MaterialTheme.colorScheme.primary
 
@@ -45,8 +48,7 @@ fun HistoricalPriceChart(
 
         OutlinedCard(
             modifier = Modifier
-                .size(width = 300.dp, height = 220.dp)  // Adjusted height for bottom label space
-                .padding(8.dp)
+                .height(220.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Canvas(

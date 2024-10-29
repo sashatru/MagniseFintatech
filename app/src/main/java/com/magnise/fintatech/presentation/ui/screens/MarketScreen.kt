@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.magnise.fintatech.data.models.HistoricalPriceData
 import com.magnise.fintatech.data.models.Instrument
 import com.magnise.fintatech.presentation.viewmodel.MarketViewModel
 import kotlinx.coroutines.launch
@@ -98,6 +99,18 @@ fun MarketScreen(
                 lastPriceData = lastPriceData
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val sampleData = listOf(
+            HistoricalPriceData(timestamp = "2024-10-29T12:50:00+00:00", closePrice = 100.0),
+            HistoricalPriceData(timestamp = "2024-10-29T12:51:00+00:00", closePrice = 120.0),
+            HistoricalPriceData(timestamp = "2024-10-29T12:52:00+00:00", closePrice = 130.0),
+            HistoricalPriceData(timestamp = "2024-10-29T12:53:00+00:00", closePrice = 50.0),
+            HistoricalPriceData(timestamp = "2024-10-29T12:54:00+00:00", closePrice = 107.0)
+        )
+        //Historical Data Display
+        HistoricalPriceChart(historicalData)
     }
 }
 
