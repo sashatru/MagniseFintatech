@@ -14,13 +14,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.magnise.fintatech.data.models.Instrument
 import com.magnise.fintatech.presentation.viewmodel.MarketViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
+import timber.log.Timber
 
 @Composable
 fun MarketScreen(
@@ -29,8 +29,14 @@ fun MarketScreen(
     val marketViewModel: MarketViewModel = getViewModel()
     val coroutineScope = rememberCoroutineScope()
 
-    var selectedInstrumentId by rememberSaveable { mutableStateOf(instruments.first().id) }
-    var selectedInstrumentSymbol by rememberSaveable { mutableStateOf(instruments.first().symbol) }
+
+    Timber.tag("MarketScreen").d("MS open instruments: %s", instruments)
+
+
+    val selectedInstrumentId =
+        rememberSaveable { mutableStateOf(marketViewModel.selectedInstrumentId) }
+    val selectedInstrumentSymbol =
+        rememberSaveable { mutableStateOf(marketViewModel.selectedInstrumentSymbol) }
 
     val lastPriceData by marketViewModel.realTimePrice.collectAsState()
 
@@ -45,26 +51,31 @@ fun MarketScreen(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp) // Add space between components
         ) {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .weight(2.0f)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(2.0f)
+            ) {
                 InstrumentSpinner(
                     instruments = instruments,
                     onInstrumentSelected = { instrument ->
-                        selectedInstrumentId = instrument.id
-                        selectedInstrumentSymbol = instrument.symbol
+                        marketViewModel.selectInstrument(instrument)
+                        selectedInstrumentId.value = instrument.id
+                        selectedInstrumentSymbol.value = instrument.symbol
                     },
                     modifier = Modifier
                         .height(56.dp) // Set a consistent height for alignment
                 )
             }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.0f)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1.0f)
+            ) {
                 SubscribeButton(
                     onSubscribeClick = {
                         coroutineScope.launch {
-                            marketViewModel.startFetchData(selectedInstrumentId)
+                            selectedInstrumentId.value?.let { marketViewModel.startFetchData(it) }
                         }
                     },
                     modifier = Modifier
@@ -76,10 +87,12 @@ fun MarketScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Market Data Display
-        MarketDataDisplay(
-            symbol = selectedInstrumentSymbol,
-            lastPriceData = lastPriceData
-        )
+        selectedInstrumentSymbol.value?.let {
+            MarketDataDisplay(
+                symbol = it,
+                lastPriceData = lastPriceData
+            )
+        }
     }
 }
 

@@ -1,5 +1,8 @@
 package com.magnise.fintatech.presentation.viewmodel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.magnise.fintatech.data.models.Instrument
@@ -14,6 +17,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+const val USER_NAME: String = "r_test@fintatech.com"
+const val PASSWORD: String = "kisfiz-vUnvy9-sopnyv"
+
 open class MarketViewModel(
     private val loginUseCase: LoginUseCase,
     private val getInstrumentsUseCase: GetInstrumentsUseCase,
@@ -26,7 +32,15 @@ open class MarketViewModel(
     private val _instruments = MutableStateFlow<List<Instrument>>(emptyList())
     val instruments: StateFlow<List<Instrument>> = _instruments
 
+
+    var selectedInstrumentId by mutableStateOf<String?>(null)
+    var selectedInstrumentSymbol by mutableStateOf<String?>(null)
+
     val realTimePrice: StateFlow<PriceData?> = getRealDataUseCase.realTimePrice
+
+    init {
+        authenticateUser(USER_NAME, PASSWORD)
+    }
 
     fun authenticateUser(username: String, password: String) {
         Timber.tag("Authentication")
@@ -50,10 +64,21 @@ open class MarketViewModel(
             .i("MVM instrumentsResult.isSuccess: %s", instrumentsResult.isSuccess)
         if (instrumentsResult.isSuccess) {
             _instruments.value = instrumentsResult.getOrThrow()
+            if (selectedInstrumentId == null && selectedInstrumentSymbol == null) {
+                _instruments.value.firstOrNull()?.let { instrument ->
+                    selectedInstrumentId = instrument.id
+                    selectedInstrumentSymbol = instrument.symbol
+                }
+            }
             _authState.value = AuthState.Authenticated
         } else {
             _authState.value = AuthState.Error("Failed to fetch instruments")
         }
+    }
+
+    fun selectInstrument(instrument: Instrument) {
+        selectedInstrumentId = instrument.id
+        selectedInstrumentSymbol = instrument.symbol
     }
 
     suspend fun startFetchData(selectedInstrumentId: String) {
@@ -73,15 +98,4 @@ open class MarketViewModel(
         }
     }
 
-    //TODO Refresh Token
-    /*    fun refreshToken() {
-            viewModelScope.launch {
-                val result = refreshTokenUseCase()
-                if (result.isSuccess) {
-                    _authState.value = AuthState.Authenticated
-                } else {
-                    _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
-                }
-            }
-        }*/
 }

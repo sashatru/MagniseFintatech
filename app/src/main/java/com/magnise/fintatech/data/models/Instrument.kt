@@ -39,5 +39,5 @@ data class Profile(
 
 @Serializable
 data class Gics(
-    val sector: String? = null
+    val sector: String = ""
 )
